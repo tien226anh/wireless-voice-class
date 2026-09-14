@@ -7,7 +7,7 @@ license = "MIT"
 
 [dependencies]
 cpal = "0.16"
-eframe = "0.32"
+eframe = { version = "0.32", features = ["persistence"] }
 crossbeam-queue = "0.3"
 decibri-aec = "0.2"
 

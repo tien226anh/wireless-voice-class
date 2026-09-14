@@ -1,7 +1,8 @@
 # Regenerate the guide screenshots
 
-The capture script launches the compiled Linux app, selects a preset, starts
-audio, opens the advanced panels, switches to the Bluetooth preset, and stops.
+The capture script launches the compiled Linux app with fresh preferences,
+chooses English, starts audio, opens the advanced panels, switches profiles and
+languages, and stops. It also reopens the app to check saved language selection.
 It captures the real application window with FFmpeg. It does not modify the UI,
 invent device names, or read your microphone or desktop session.
 
@@ -29,21 +30,31 @@ The script requires only Python's standard library plus the commands above. It
 creates a private PulseAudio server with a silent virtual microphone and a null
 speaker. A process-local ALSA configuration routes both app selectors (`default`)
 to that server. It leaves the system audio configuration unchanged and terminates
-its app, sound server, and virtual display when it exits.
+its app, sound server, and virtual display when it exits. Language preferences
+are stored in its temporary data directory; your saved language stays unchanged.
 
 ## Output and verification
 
 | File | Captured state |
 | --- | --- |
-| `01-setup.png` | Stopped, default preset and device selectors |
-| `02-presets.png` | Preset choices open |
+| `00-language.png` | First-launch bilingual language chooser |
+| `01-setup.png` | English setup, Bluetooth profile selected by default |
+| `02-presets.png` | Sound profiles with a translated explanation tooltip |
 | `03-running.png` | Audio streams started, Stop button visible |
 | `04-feedback.png` | Feedback parameters expanded |
 | `05-bluetooth-buffer.png` | Bluetooth preset applied while running; adaptive settings expanded |
 | `06-stopped.png` | Audio stopped after the walkthrough |
+| `07-vietnamese.png` | Vietnamese interface and help while audio keeps running |
+| `08-small-window.png` | Vietnamese layout at the minimum window size |
+| `09-start-help.png` | Start button with its getting-started tooltip |
+| `10-language-restored.png` | Reopened app remembers Vietnamese and skips onboarding |
 
 The script checks that Start creates audio capture and playback streams, that
-changing the preset restarts capture, and that Stop removes capture. Inspect all
+changing the preset restarts capture, that switching languages preserves the
+running streams, and that Stop removes capture and playback, including at the
+minimum window size. It checks persisted
+language preferences and starts audio again after relaunch to confirm onboarding
+was skipped. Inspect all
 screenshots after running: clicks use window-relative coordinates for the current
 layout at 100% scale, so layout changes may require updating those coordinates.
 
