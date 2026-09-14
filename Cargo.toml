@@ -11,6 +11,9 @@ eframe = { version = "0.32", features = ["persistence"] }
 crossbeam-queue = "0.3"
 decibri-aec = "0.2"
 
+[build-dependencies]
+winresource = "0.1.31"
+
 [profile.release]
 lto = true
 codegen-units = 1

@@ -18,6 +18,7 @@ fn bold(text: impl Into<String>, size: f32) -> RichText {
 }
 
 pub fn configure(ctx: &egui::Context) {
+    crate::branding::install(ctx);
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
         "Noto Sans".into(),
@@ -89,44 +90,6 @@ fn card() -> egui::Frame {
         .inner_margin(18)
 }
 
-fn microphone_mark(ui: &mut egui::Ui, size: f32) {
-    let (rect, _) = ui.allocate_exact_size(Vec2::splat(size), egui::Sense::hover());
-    let painter = ui.painter();
-    painter.rect_filled(rect, 12, PRIMARY);
-    let center = rect.center();
-    let scale = size / 48.0;
-    painter.rect_filled(
-        egui::Rect::from_center_size(
-            center + egui::vec2(0.0, -4.0) * scale,
-            egui::vec2(10.0, 19.0) * scale,
-        ),
-        5,
-        Color32::WHITE,
-    );
-    let points = [
-        (-9.0, -2.0),
-        (-9.0, 4.0),
-        (-6.0, 9.0),
-        (0.0, 11.0),
-        (6.0, 9.0),
-        (9.0, 4.0),
-        (9.0, -2.0),
-    ]
-    .map(|(x, y)| center + egui::vec2(x, y) * scale)
-    .to_vec();
-    painter.add(egui::Shape::line(
-        points,
-        Stroke::new(2.0 * scale, Color32::WHITE),
-    ));
-    painter.line_segment(
-        [
-            center + egui::vec2(0.0, 11.0) * scale,
-            center + egui::vec2(0.0, 16.0) * scale,
-        ],
-        Stroke::new(2.0 * scale, Color32::WHITE),
-    );
-}
-
 fn step_title(ui: &mut egui::Ui, number: &str, title: &str) {
     ui.horizontal(|ui| {
         let (rect, _) = ui.allocate_exact_size(Vec2::splat(30.0), egui::Sense::hover());
@@ -179,7 +142,7 @@ impl PaApp {
                 ui.add_space(((ui.available_height() - 470.0) / 2.0).max(28.0));
                 ui.vertical_centered(|ui| {
                     ui.set_max_width(540.0);
-                    microphone_mark(ui, 64.0);
+                    crate::branding::logo(ui, 64.0);
                     ui.add_space(12.0);
                     ui.label(bold("Wireless PA", 32.0));
                     ui.label(RichText::new("Welcome / Xin chào").size(18.0).color(MUTED));
@@ -228,7 +191,7 @@ impl PaApp {
         egui::TopBottomPanel::top("header").frame(egui::Frame::new().fill(Color32::WHITE)
             .inner_margin(egui::Margin::symmetric(24, 16))).show(ctx, |ui| {
             ui.horizontal(|ui| {
-                microphone_mark(ui, 44.0);
+                crate::branding::logo(ui, 44.0);
                 let compact = ui.available_width() < 600.0;
                 ui.vertical(|ui| {
                     ui.label(bold("Wireless PA", 23.0));
