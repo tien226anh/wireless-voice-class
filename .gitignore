@@ -1,5 +1,8 @@
 # Cargo build outputs (including cross-compilation targets)
 /target/
+/dist/
+/package/
+/VERSION.txt
 
 # Keep Cargo.lock versioned for reproducible application builds.
 
