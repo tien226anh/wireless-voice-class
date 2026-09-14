@@ -2,6 +2,9 @@
 
 A small cross-platform PA application that routes a microphone to a selected speaker with realtime voice DSP.
 
+Read the [configuration and usage guide](docs/USER_GUIDE.md) for setup instructions,
+screenshots, explanations of the controls, and troubleshooting.
+
 ## Stack
 
 - Rust
@@ -101,7 +104,7 @@ target/release/wireless-pa
 After a pull request is approved and merged into `main`, GitHub Actions builds
 Linux x64 and Windows x64 (MSVC) archives and attaches them, plus `SHA256SUMS`,
 to the [Releases page](https://github.com/tien226anh/wireless-voice-class/releases).
-Each archive includes the executable, README, and MIT license. Linux builds use
+Each archive includes the executable, README, illustrated user guide, and MIT license. Linux builds use
 Ubuntu 22.04 and require a compatible desktop Linux system with ALSA installed.
 
 The workflow checks each push to `main` for its merged PR. It requires an approval
@@ -115,5 +118,8 @@ before publication. A failed upload leaves a draft; rerunning the workflow retri
 publication, while an already published release is left intact.
 
 The workflow uses GitHub's built-in token; no additional release secret is needed.
+Pull requests targeting `main` build both archives for verification in the Actions
+run's artifacts. After an approved merge, the workflow rebuilds the merged commit
+and publishes the archives on the Releases page.
 You can also use **Run workflow** on the Actions page to verify both builds without
 publishing a release.
