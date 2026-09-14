@@ -3,6 +3,9 @@ name: Release approved pull request
 on:
   push:
     branches: [main]
+  # PR builds validate both downloadable archives before review and merge.
+  pull_request:
+    branches: [main]
   # Manual runs verify both builds without publishing a release.
   workflow_dispatch:
 
@@ -70,7 +73,7 @@ jobs:
   build:
     name: Build ${{ matrix.platform }}
     needs: approval
-    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.approval.outputs.approved == 'true') }}
+    if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || needs.approval.outputs.approved == 'true') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
@@ -110,13 +113,15 @@ jobs:
         run: |
           mkdir -p package dist
           cp "target/$BUILD_TARGET/release/wireless-pa" LICENSE README.md package/
-          tar -czf dist/wireless-pa-linux-x64.tar.gz -C package wireless-pa LICENSE README.md
+          cp -r docs package/
+          tar -czf dist/wireless-pa-linux-x64.tar.gz -C package wireless-pa LICENSE README.md docs
       - name: Package Windows release
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force package, dist | Out-Null
           Copy-Item "target/$env:BUILD_TARGET/release/wireless-pa.exe", LICENSE, README.md package/
+          Copy-Item docs package/ -Recurse
           Compress-Archive -Path package/* -DestinationPath dist/wireless-pa-windows-x64.zip
       - uses: actions/upload-artifact@v7
         with:
