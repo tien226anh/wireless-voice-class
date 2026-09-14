@@ -234,7 +234,7 @@ test('version stamping changes only the root package and records the source SHA'
 function publication(t, overrides = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'wireless-publish-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  for (const name of ['wireless-pa-v0.5.0-linux-x64.tar.gz', 'wireless-pa-v0.5.0-windows-x64.zip']) {
+  for (const name of ['wireless-pa-v0.5.0-linux-x64.tar.gz', 'wireless-pa-v0.5.0-windows-x64.zip', 'wireless-pa-v0.5.0-windows-x64-setup.exe']) {
     writeFileSync(join(directory, name), 'Test archive bytes');
   }
   const { state, api } = fixture(overrides);
@@ -244,16 +244,42 @@ function publication(t, overrides = {}) {
   return { state, options: { api, upload, repo, tag: 'v0.5.0', sha, directory } };
 }
 
-test('publication uploads both archives and checksums before pinning tag and publishing Latest', async t => {
+test('publication uploads installer, both archives, and checksums before publishing Latest', async t => {
   const { state, options } = publication(t);
   const url = await publishRelease(options);
   assert.match(url, /releases\/tag\/v0.5.0$/);
-  assert.equal(state.assets.length, 3);
+  assert.equal(state.assets.length, 4);
+  assert.ok(state.assets.some(asset => asset.name === 'wireless-pa-v0.5.0-windows-x64-setup.exe'));
   assert.equal(state.tags[0].sha, sha);
   assert.equal(state.releases[0].draft, false);
   assert.equal(state.releases[0].make_latest, 'true');
   assert.match(readFileSync(join(options.directory, 'SHA256SUMS'), 'utf8'), /^[a-f0-9]{64}  wireless-pa-v0.5.0-linux-x64.tar.gz\n/);
+  assert.match(readFileSync(join(options.directory, 'SHA256SUMS'), 'utf8'), /[a-f0-9]{64}  wireless-pa-v0.5.0-windows-x64-setup.exe\n/);
   assert.deepEqual(state.writes.map(w => w.route), ['/releases/generate-notes', '/releases', '/git/refs', '/releases/1']);
+});
+
+test('missing or empty installer prevents any publication writes', async t => {
+  const { state, options } = publication(t);
+  const installer = join(options.directory, 'wireless-pa-v0.5.0-windows-x64-setup.exe');
+  writeFileSync(installer, '');
+  await assert.rejects(publishRelease(options), /empty release asset/);
+  assert.deepEqual(state.writes, []);
+  rmSync(installer);
+  await assert.rejects(publishRelease(options), /ENOENT/);
+  assert.deepEqual(state.writes, []);
+});
+
+test('an incomplete installer upload leaves the release draft without a tag', async t => {
+  const { state, options } = publication(t);
+  await assert.rejects(publishRelease({ ...options, upload: async (...args) => {
+    await options.upload(...args);
+    state.assets.find(asset => asset.name.endsWith('-setup.exe')).size = 1;
+  } }), /not uploaded completely.*setup.exe/);
+  assert.equal(state.releases[0].draft, true);
+  assert.equal(state.tags.length, 0);
+  await publishRelease(options);
+  assert.equal(state.releases[0].draft, false);
+  assert.equal(state.assets.length, 4);
 });
 
 test('failed upload leaves a draft without a tag; retry completes the same release', async t => {

@@ -93,6 +93,8 @@ jobs:
       CARGO_TERM_COLOR: always
       BUILD_TARGET: ${{ matrix.target }}
       RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+      # Bundle the MSVC runtime so a fresh Windows installation needs no VC++ prerequisite.
+      CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: '-C target-feature=+crt-static'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -136,6 +138,14 @@ jobs:
           Copy-Item assets/logo.svg package/assets/
           Copy-Item assets/icons package/assets/ -Recurse
           Compress-Archive -Path package/* -DestinationPath "dist/wireless-pa-${env:RELEASE_TAG}-windows-x64.zip"
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/build-windows-installer.ps1 -Version $env:RELEASE_TAG
+      - name: Verify Windows installer lifecycle
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-windows-installer.ps1 -Version $env:RELEASE_TAG
       - uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.platform }}
@@ -168,5 +178,5 @@ jobs:
           pattern: release-*
           path: dist
           merge-multiple: true
-      - name: Publish archives and checksums
+      - name: Publish installer, archives, and checksums
         run: node scripts/release.mjs publish --version "$RELEASE_TAG"
