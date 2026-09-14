@@ -9,12 +9,19 @@ system first. The app uses devices already available to the computer.
 ## Open the app and choose a language
 
 Download a version from the [Releases page](https://github.com/tien226anh/wireless-voice-class/releases)
-and extract its archive.
+and choose the Windows installer or a portable archive.
 
-| System | Archive | Open |
+| System | Download | Open |
 | --- | --- | --- |
+| Windows 10/11 x64 — recommended | `wireless-pa-vX.Y.Z-windows-x64-setup.exe` | Run the setup wizard, then open **Wireless PA** from Start. |
 | Windows x64 | `wireless-pa-vX.Y.Z-windows-x64.zip` | Double-click `wireless-pa.exe`. |
 | Linux x64 | `wireless-pa-vX.Y.Z-linux-x64.tar.gz` | Run `./wireless-pa` in a graphical desktop with ALSA. |
+
+The Windows installer installs for your user account without an administrator
+prompt. It adds a Start menu shortcut and offers an optional desktop shortcut.
+Run a newer installer to update the same installation. Uninstall from Windows
+Settings → Apps; your saved language preference is retained. The portable ZIP
+still works without installation—extract it before opening the executable.
 
 On first launch, choose **English** or **Tiếng Việt**. The app remembers your
 choice. You can change language at any time using the selector in the top bar,

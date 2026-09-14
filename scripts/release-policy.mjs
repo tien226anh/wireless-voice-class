@@ -202,10 +202,14 @@ export function stampVersion(tag, sha, root = '.') {
 
 export async function publishRelease({ api, upload, repo, tag, sha, directory }) {
   versionParts(tag);
-  const names = [`wireless-pa-${tag}-linux-x64.tar.gz`, `wireless-pa-${tag}-windows-x64.zip`];
+  const names = [
+    `wireless-pa-${tag}-linux-x64.tar.gz`,
+    `wireless-pa-${tag}-windows-x64.zip`,
+    `wireless-pa-${tag}-windows-x64-setup.exe`,
+  ];
   const checksums = names.map(name => {
     const file = join(directory, name);
-    if (!statSync(file).isFile() || statSync(file).size === 0) throw new Error(`Missing or empty archive: ${name}`);
+    if (!statSync(file).isFile() || statSync(file).size === 0) throw new Error(`Missing or empty release asset: ${name}`);
     return `${createHash('sha256').update(readFileSync(file)).digest('hex')}  ${name}\n`;
   }).join('');
   writeFileSync(join(directory, 'SHA256SUMS'), checksums);

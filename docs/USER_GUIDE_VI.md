@@ -9,12 +9,19 @@ ghép đôi tai nghe Bluetooth hoặc cắm bộ thu USB không dây trong hệ 
 ## Mở ứng dụng và chọn ngôn ngữ
 
 Tải bản phù hợp từ [trang Releases](https://github.com/tien226anh/wireless-voice-class/releases),
-giải nén, rồi mở ứng dụng.
+chọn bộ cài Windows hoặc bản nén chạy trực tiếp.
 
 | Hệ điều hành | Tệp tải về | Cách mở |
 | --- | --- | --- |
+| Windows 10/11 x64 — khuyên dùng | `wireless-pa-vX.Y.Z-windows-x64-setup.exe` | Chạy bộ cài, sau đó mở **Wireless PA** trong menu Start. |
 | Windows x64 | `wireless-pa-vX.Y.Z-windows-x64.zip` | Nhấp đúp `wireless-pa.exe`. |
 | Linux x64 | `wireless-pa-vX.Y.Z-linux-x64.tar.gz` | Chạy `./wireless-pa` trong môi trường đồ họa có ALSA. |
+
+Bộ cài Windows cài cho tài khoản hiện tại, không yêu cầu quyền quản trị. Bộ cài
+tạo lối tắt trong menu Start và cho phép chọn thêm lối tắt trên màn hình nền.
+Chạy bộ cài phiên bản mới để cập nhật. Gỡ cài đặt trong Settings → Apps của
+Windows; lựa chọn ngôn ngữ đã lưu vẫn được giữ lại. Với bản ZIP, hãy giải nén
+trước khi mở tệp thực thi; không cần cài đặt.
 
 Lần đầu mở, chọn **English** hoặc **Tiếng Việt**. Ứng dụng ghi nhớ lựa chọn này.
 Bạn có thể đổi ngôn ngữ trên thanh phía trên bất cứ lúc nào, kể cả khi đang phát.

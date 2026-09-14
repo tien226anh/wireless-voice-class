@@ -52,7 +52,7 @@ async function main() {
      [--version v0.5.1]
   manual [--version v0.5.1] [--yes]      Suggest/confirm a tag, build main, and publish
   stamp --version v0.5.1                CI: stamp Cargo files and VERSION.txt
-  publish --version v0.5.1              CI: publish both archives from dist/`);
+  publish --version v0.5.1              CI: publish installer and archives from dist/`);
     return;
   }
   if (!['suggest', 'pr', 'manual', 'stamp', 'publish'].includes(operation)) throw new Error('Unknown command; use --help.');

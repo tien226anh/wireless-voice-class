@@ -1,6 +1,6 @@
 # Versioned releases
 
-Releases contain Linux x64 and Windows x64 builds, the illustrated user guide,
+Releases contain a Windows installer, portable Linux x64 and Windows x64 builds, the illustrated user guide,
 and checksums. Each version uses an exact Git tag such as `v0.5.1` and appears on
 the repository's [Releases page](https://github.com/tien226anh/wireless-voice-class/releases)
 as the latest release.
@@ -14,9 +14,10 @@ flowchart TD
     S --> T[Confirm exact tag]
     T --> D
     D --> L[Build Linux x64]
-    D --> W[Build Windows x64]
-    L --> U[Upload both archives and checksums to a draft]
-    W --> U
+    D --> W[Build Windows x64 ZIP and installer]
+    L --> U[Upload installer, archives, and checksums to a draft]
+    W --> V[Test installer install, reinstall, and uninstall]
+    V --> U
     U --> R[Create Git tag and publish Latest release]
 ```
 
@@ -126,10 +127,11 @@ reservation: if another release uses it first, choose a newer tag.
 
 ## What gets published
 
-For `v0.5.1`, the release assets are:
+Starting with the installer release, the four assets for a version such as `v0.5.2` are:
 
-- `wireless-pa-v0.5.1-linux-x64.tar.gz`
-- `wireless-pa-v0.5.1-windows-x64.zip`
+- `wireless-pa-v0.5.2-windows-x64-setup.exe` — recommended for Windows users
+- `wireless-pa-v0.5.2-windows-x64.zip` — portable Windows build
+- `wireless-pa-v0.5.2-linux-x64.tar.gz` — portable Linux build
 - `SHA256SUMS`
 
 Each archive contains its executable, `LICENSE`, `README.md`, `docs/`, `assets/`, and
@@ -142,10 +144,21 @@ Windows executables embed the application logo as their icon. The Linux archive
 also contains `wireless-pa.desktop`; see the [logo and launcher guide](BRANDING.md)
 for application-menu installation and icon regeneration.
 
-Both platform builds must succeed before publication. The workflow uploads to a
-draft, checks that all three assets finished uploading, creates the tag at the
+Both platform builds and the Windows installer lifecycle test must succeed before publication. The workflow uploads to a
+draft, checks that all four assets finished uploading, creates the tag at the
 built commit, then publishes and marks the release **Latest**. A newer manual
 release can build the same `main` commit under a new version.
+
+The installer is built with Inno Setup on the Windows runner from the same
+staged files as the ZIP. It uses a stable application ID for upgrades, installs
+per user, adds Start menu and optional desktop shortcuts, and registers an
+uninstaller. Saved language preferences live outside the install directory and
+survive upgrades and uninstall. Windows builds statically link the MSVC runtime.
+The current pipeline produces unsigned installers; code signing requires a
+publisher certificate and is not configured.
+
+See [Windows installer maintenance](WINDOWS_INSTALLER.md) for local build and
+smoke-test commands. Manual releases use this same installer build and test flow.
 
 ## Failure and retry behavior
 
@@ -156,6 +169,7 @@ release can build the same `main` commit under a new version.
 | Manual operation is `suggest` | Build and publish are intentionally skipped. Run again with `operation=release` and the exact suggested version. |
 | Tag is malformed, already used, or older than an existing stable version | Fails before building. Choose a new `vMAJOR.MINOR.PATCH` tag. |
 | One build fails | No release is published. Fix the build, or rerun failed jobs for a transient failure. |
+| Installer compilation, install/reinstall/uninstall test, or installer upload fails | No release is published. Check the Windows job and installer logs; fix the issue and retry. |
 | Upload fails | The draft remains. Rerun the original workflow to retry the same version and commit. |
 | Release already completed for this exact commit | Rerunning skips it; published assets are not replaced. |
 | Tag/draft belongs to another commit or another release process | Fails without overwriting it. Choose a different version. |

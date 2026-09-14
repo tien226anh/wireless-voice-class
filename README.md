@@ -7,6 +7,10 @@ The logo is embedded in the app and Windows executable. See the
 
 A small cross-platform PA application that routes a microphone to a selected speaker with realtime voice DSP.
 
+Windows users can download the **`windows-x64-setup.exe` installer** from
+[Releases](https://github.com/tien226anh/wireless-voice-class/releases).
+Portable Windows ZIP and Linux archives are available on the same release page.
+
 Read the [configuration and usage guide](docs/USER_GUIDE.md) for setup instructions,
 screenshots, explanations of the controls, and troubleshooting.
 You can also read the [Vietnamese guide](docs/USER_GUIDE_VI.md).
