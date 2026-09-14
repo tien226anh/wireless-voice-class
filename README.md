@@ -95,3 +95,25 @@ Linux output:
 ```text
 target/release/wireless-pa
 ```
+
+### Automated GitHub releases
+
+After a pull request is approved and merged into `main`, GitHub Actions builds
+Linux x64 and Windows x64 (MSVC) archives and attaches them, plus `SHA256SUMS`,
+to the [Releases page](https://github.com/tien226anh/wireless-voice-class/releases).
+Each archive includes the executable, README, and MIT license. Linux builds use
+Ubuntu 22.04 and require a compatible desktop Linux system with ALSA installed.
+
+The workflow checks each push to `main` for its merged PR. It requires an approval
+on the final PR revision before merging, with no outstanding change requests.
+Direct pushes and merges without that approval skip the release. This controls
+publication; it does not configure GitHub branch protection or merge PRs for you.
+
+Tags combine the Cargo version and PR number, for example `v0.5.0-pr.12`, so every
+approved merge can release without changing `Cargo.toml`. Both builds must succeed
+before publication. A failed upload leaves a draft; rerunning the workflow retries
+publication, while an already published release is left intact.
+
+The workflow uses GitHub's built-in token; no additional release secret is needed.
+You can also use **Run workflow** on the Actions page to verify both builds without
+publishing a release.
