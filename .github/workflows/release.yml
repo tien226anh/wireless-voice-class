@@ -3,11 +3,6 @@ name: Release approved pull request
 on:
   push:
     branches: [main]
-  # PR builds validate both downloadable archives before review and merge.
-  pull_request:
-    branches: [main]
-  # Manual runs verify both builds without publishing a release.
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -73,7 +68,7 @@ jobs:
   build:
     name: Build ${{ matrix.platform }}
     needs: approval
-    if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || needs.approval.outputs.approved == 'true') }}
+    if: needs.approval.outputs.approved == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
