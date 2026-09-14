@@ -11,8 +11,8 @@ Get an archive from the [Releases page](https://github.com/tien226anh/wireless-v
 
 | System | Archive | Open after extracting |
 | --- | --- | --- |
-| Windows x64 | `wireless-pa-windows-x64.zip` | Double-click `wireless-pa.exe`. |
-| Linux x64 | `wireless-pa-linux-x64.tar.gz` | Run `./wireless-pa` in the extracted folder. |
+| Windows x64 | `wireless-pa-vX.Y.Z-windows-x64.zip` | Double-click `wireless-pa.exe`. |
+| Linux x64 | `wireless-pa-vX.Y.Z-linux-x64.tar.gz` | Run `./wireless-pa` in the extracted folder. |
 
 Linux needs a graphical desktop and the ALSA runtime. If no release has been
 published yet, follow the [source build instructions](../README.md#build).

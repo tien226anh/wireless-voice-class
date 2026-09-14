@@ -99,25 +99,26 @@ Linux output:
 target/release/wireless-pa
 ```
 
-### Automated GitHub releases
+### Versioned GitHub releases
 
-After a pull request is approved and merged into `main`, GitHub Actions builds
-Linux x64 and Windows x64 (MSVC) archives and attaches them, plus `SHA256SUMS`,
-to the [Releases page](https://github.com/tien226anh/wireless-voice-class/releases).
-Each archive includes the executable, README, illustrated user guide, and MIT license. Linux builds use
-Ubuntu 22.04 and require a compatible desktop Linux system with ALSA installed.
+Create a PR with an exact label such as `release:v0.5.1`, approve its final revision,
+and merge into `main`. GitHub Actions builds Linux x64 and Windows x64, then
+publishes both archives and checksums under tag `v0.5.1` on the
+[Releases page](https://github.com/tien226anh/wireless-voice-class/releases).
+Opening or updating a PR starts no builds.
 
-The workflow checks each push to `main` for its merged PR. It requires an approval
-on the final PR revision before merging, with no outstanding change requests.
-Direct pushes and merges without that approval skip the release. This controls
-publication; it does not configure GitHub branch protection or merge PRs for you.
+Use the helpers to get a suggested version when creating a PR or manually
+releasing from `main`:
 
-Tags combine the Cargo version and PR number, for example `v0.5.0-pr.12`, so every
-approved merge can release without changing `Cargo.toml`. Both builds must succeed
-before publication. A failed upload leaves a draft; rerunning the workflow retries
-publication, while an already published release is left intact.
+```bash
+node scripts/release.mjs pr --title "Describe your change" --body-file /tmp/pr.md
+node scripts/release.mjs manual
+```
 
-The workflow uses GitHub's built-in token; no additional release secret is needed.
-Opening or updating a pull request does not run builds. Builds and publication
-run only after an approved PR is merged into `main`; there is no manual build
-trigger.
+The manual command suggests a tag and asks for confirmation before starting a
+real build and release. It works for the repository owner without a PR review.
+The Actions page also provides separate **suggest** and **release** operations.
+
+Each archive includes the executable, illustrated user guide, MIT license, and
+version/source information. See the [complete release workflow](docs/RELEASES.md)
+for version selection, manual runs, approvals, and retry behavior.
