@@ -7,7 +7,7 @@ as the latest release.
 
 ```mermaid
 flowchart TD
-    A[Create PR with release:v0.5.1 label] --> B[Approve final revision]
+    A[Create PR with release:v0.5.1 label] --> B[Owner authorizes merge or reviewer approves final revision]
     B --> C[Merge into main]
     C --> D[Validate tag and source commit]
     M[Author requests manual release] --> S[Suggest next tag]
@@ -21,7 +21,8 @@ flowchart TD
 ```
 
 Opening or updating a PR starts **no builds**. The automatic path requires a
-version label and approval before merge. The manual path lets the repository
+version label and either a merge by the personal repository owner or approval
+of the final revision before another maintainer merges. The manual path lets the repository
 owner or another maintainer publish from `main` without a PR approval.
 
 ## Create a PR with a suggested exact version
@@ -49,14 +50,33 @@ You can also create the PR in GitHub's UI. Create a repository label named
 `release:v0.5.1` and assign it to the PR before merging. Use exactly one
 `release:` label. Values such as `release:patch` are not accepted.
 
-1. Have another reviewer approve the final code revision.
+1. As repository owner, review the change and merge it yourself. For another
+   maintainer to merge, have a reviewer approve the final code revision.
 2. Merge the PR into `main`.
 3. Open **Actions → Versioned release** to follow both builds.
 4. When publication finishes, open **Releases → v0.5.1**.
 
-GitHub does not allow the PR author to approve their own PR. If you work alone,
-merge your changes and use the manual release path below. That path does not
-require another account or change commit authorship.
+GitHub does not allow the PR author to approve their own PR. Your merge as the
+personal repository owner counts as release authorization, so working alone
+does not require a separate approval or a manual release. The workflow checks
+the recorded merger's user ID; rerunning someone else's unapproved merge as the
+owner does not approve it.
+
+## Main branch protection
+
+Two active repository rulesets protect `main`:
+
+- **Main: pull requests and history protection** requires a PR and resolution of
+  review discussions, and blocks force pushes and branch deletion. No bypass.
+- **Main: reviewed changes with owner merge approval** requires one current
+  approval and approval of the latest push. Only `tien226anh` can bypass this
+  review requirement, and only when merging a PR. Use GitHub's bypass option
+  when merging your own PR; the first ruleset still applies.
+
+The configuration is tracked in `.github/rulesets/`. Editing those JSON files
+does not automatically change GitHub settings. No pre-merge build check is
+required because builds run only after merge. Release tags are outside these
+branch rules, so the workflow can create them after successful builds.
 
 ## Manual release with a version suggestion
 
@@ -127,7 +147,9 @@ release can build the same `main` commit under a new version.
 
 | Situation | Result / recovery |
 | --- | --- |
-| Direct push, untagged merge, or merge without final-revision approval | No build or release. Use an approved labeled PR or the manual flow. |
+| Direct push or untagged merge | No build or release. Main protection blocks direct pushes. Use a version-labeled PR. |
+| Tagged merge by someone other than the owner without final-revision approval | Validation fails with an explicit error. Use the authorized manual flow to recover. |
+| Manual operation is `suggest` | Build and publish are intentionally skipped. Run again with `operation=release` and the exact suggested version. |
 | Tag is malformed, already used, or older than an existing stable version | Fails before building. Choose a new `vMAJOR.MINOR.PATCH` tag. |
 | One build fails | No release is published. Fix the build, or rerun failed jobs for a transient failure. |
 | Upload fails | The draft remains. Rerun the original workflow to retry the same version and commit. |
@@ -152,6 +174,12 @@ actionlint 1.7.12 does not yet recognize. Tests cover version selection, reviews
 manual authorization, version stamping, draft recovery, asset completion, and tag
 collisions without publishing a release.
 
+Older workflow runs retain the workflow and source from their original commit.
+Rerunning a skipped run from before the owner-merge fix does not load the fix.
+Merge the updated PR for automatic release, or use the manual release operation
+on current `main`.
+
 References: [manual workflow inputs](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow),
 [review rules](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request),
+[repository rulesets](https://docs.github.com/en/rest/repos/rules#create-a-repository-ruleset),
 and [queued release runs](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).

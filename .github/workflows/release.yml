@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Suggest a tag, or build and publish a confirmed version
+        description: 'suggest = version only (no build); release = build and publish'
         type: choice
         options: [suggest, release]
         default: suggest
