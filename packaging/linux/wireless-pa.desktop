@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Wireless PA
+GenericName=Microphone to speaker
+GenericName[vi]=Phát micrô ra loa
+Comment=Play your wireless microphone through your speakers
+Comment[vi]=Phát giọng nói từ micrô không dây ra loa
+Exec=wireless-pa
+TryExec=wireless-pa
+Icon=wireless-pa
+Terminal=false
+Categories=AudioVideo;Audio;
+StartupWMClass=wireless-pa

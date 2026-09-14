@@ -11,7 +11,7 @@ invent device names, or read your microphone or desktop session.
 On Ubuntu/Debian, install the capture tools and build dependencies:
 
 ```bash
-sudo apt-get install python3 xvfb xdotool ffmpeg pulseaudio pulseaudio-utils libasound2-plugins libasound2-dev pkg-config
+sudo apt-get install python3 xvfb xdotool x11-utils ffmpeg pulseaudio pulseaudio-utils libasound2-plugins libasound2-dev pkg-config
 cargo build --locked --release
 python3 scripts/capture-guide.py
 ```
@@ -49,7 +49,8 @@ are stored in its temporary data directory; your saved language stays unchanged.
 | `09-start-help.png` | Start button with its getting-started tooltip |
 | `10-language-restored.png` | Reopened app remembers Vietnamese and skips onboarding |
 
-The script checks that Start creates audio capture and playback streams, that
+The script checks the native window's embedded logo through the X11 icon
+property. It also checks that Start creates audio capture and playback streams, that
 changing the preset restarts capture, that switching languages preserves the
 running streams, and that Stop removes capture and playback, including at the
 minimum window size. It checks persisted

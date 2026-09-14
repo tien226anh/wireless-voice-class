@@ -118,10 +118,13 @@ jobs:
       - name: Package Linux release
         if: runner.os == 'Linux'
         run: |
-          mkdir -p package dist
+          mkdir -p package/assets dist
           cp "target/$BUILD_TARGET/release/wireless-pa" LICENSE README.md VERSION.txt package/
           cp -r docs package/
-          tar -czf "dist/wireless-pa-${RELEASE_TAG}-linux-x64.tar.gz" -C package wireless-pa LICENSE README.md VERSION.txt docs
+          cp assets/logo.svg package/assets/
+          cp -r assets/icons package/assets/
+          cp packaging/linux/wireless-pa.desktop package/
+          tar -czf "dist/wireless-pa-${RELEASE_TAG}-linux-x64.tar.gz" -C package wireless-pa LICENSE README.md VERSION.txt docs assets wireless-pa.desktop
       - name: Package Windows release
         if: runner.os == 'Windows'
         shell: pwsh
@@ -129,6 +132,9 @@ jobs:
           New-Item -ItemType Directory -Force package, dist | Out-Null
           Copy-Item "target/$env:BUILD_TARGET/release/wireless-pa.exe", LICENSE, README.md, VERSION.txt package/
           Copy-Item docs package/ -Recurse
+          New-Item -ItemType Directory -Force package/assets | Out-Null
+          Copy-Item assets/logo.svg package/assets/
+          Copy-Item assets/icons package/assets/ -Recurse
           Compress-Archive -Path package/* -DestinationPath "dist/wireless-pa-${env:RELEASE_TAG}-windows-x64.zip"
       - uses: actions/upload-artifact@v7
         with:

@@ -1,5 +1,10 @@
 # Wireless PA (Rust, cross-platform)
 
+<img src="assets/logo.svg" width="88" height="88" alt="Wireless PA logo">
+
+The logo is embedded in the app and Windows executable. See the
+[logo and Linux launcher guide](docs/BRANDING.md) for icon assets and desktop setup.
+
 A small cross-platform PA application that routes a microphone to a selected speaker with realtime voice DSP.
 
 Read the [configuration and usage guide](docs/USER_GUIDE.md) for setup instructions,

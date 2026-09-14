@@ -24,7 +24,7 @@ def main():
     binary = args.binary.resolve()
     if not binary.is_file():
         parser.error(f"Missing {binary}; run cargo build --locked --release first")
-    for tool in ("Xvfb", "xdotool", "ffmpeg", "pulseaudio", "pactl"):
+    for tool in ("Xvfb", "xdotool", "xprop", "ffmpeg", "pulseaudio", "pactl"):
         if not shutil.which(tool):
             parser.error(f"Missing tool: {tool}; see docs/CAPTURE.md")
     args.output.mkdir(parents=True, exist_ok=True)
@@ -98,6 +98,14 @@ def main():
                 lambda: run("xdotool", "search", "--onlyvisible", "--pid", str(app.pid),
                             "--name", "^Wireless PA$").splitlines()[0], "app window")
             run("xdotool", "windowsize", "--sync", window, "960", "1000")
+            # xprop stores CARDINALs as native longs (8 bytes on a 64-bit host).
+            icon_property = run("xprop", "-id", window, "-len", "4000000", "-f", "_NET_WM_ICON", "32c", " = $0+\n", "_NET_WM_ICON")
+            icon = [int(value) for value in re.findall(r"\d+", icon_property.partition("=")[2])]
+            if icon[:2] != [512, 512] or len(icon) != 2 + 512 * 512:
+                raise RuntimeError(f"Invalid native icon dimensions or data length: {icon[:2]}, {len(icon)} values")
+            if icon[2] != 0 or icon[2 + 180 * 512 + 230] != 0xFFFFFFFF:
+                raise RuntimeError("The window icon does not match the transparent microphone logo")
+            print("Verified the bundled native window icon.", flush=True)
 
             def capture(name, hover=False):
                 if not hover:

@@ -132,11 +132,15 @@ For `v0.5.1`, the release assets are:
 - `wireless-pa-v0.5.1-windows-x64.zip`
 - `SHA256SUMS`
 
-Each archive contains its executable, `LICENSE`, `README.md`, `docs/`, and
+Each archive contains its executable, `LICENSE`, `README.md`, `docs/`, `assets/`, and
 `VERSION.txt` with the tag and exact source commit. The workflow stamps the chosen
 version into the build checkout's root Cargo package and lockfile before running
 `cargo build --locked --release`. It does not commit version changes to `main`.
 The Git tag points to the original source commit recorded in `VERSION.txt`.
+
+Windows executables embed the application logo as their icon. The Linux archive
+also contains `wireless-pa.desktop`; see the [logo and launcher guide](BRANDING.md)
+for application-menu installation and icon regeneration.
 
 Both platform builds must succeed before publication. The workflow uploads to a
 draft, checks that all three assets finished uploading, creates the tag at the

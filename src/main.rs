@@ -2,6 +2,7 @@
 
 mod aec;
 mod audio;
+mod branding;
 mod dsp;
 mod i18n;
 mod preset;
@@ -253,6 +254,7 @@ fn main() -> eframe::Result<()> {
         viewport: egui::ViewportBuilder::default()
             .with_title("Wireless PA")
             .with_app_id("wireless-pa")
+            .with_icon(branding::window_icon())
             .with_inner_size([960.0, 920.0])
             .with_min_inner_size([600.0, 620.0]),
         ..Default::default()
