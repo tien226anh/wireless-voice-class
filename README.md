@@ -118,8 +118,6 @@ before publication. A failed upload leaves a draft; rerunning the workflow retri
 publication, while an already published release is left intact.
 
 The workflow uses GitHub's built-in token; no additional release secret is needed.
-Pull requests targeting `main` build both archives for verification in the Actions
-run's artifacts. After an approved merge, the workflow rebuilds the merged commit
-and publishes the archives on the Releases page.
-You can also use **Run workflow** on the Actions page to verify both builds without
-publishing a release.
+Opening or updating a pull request does not run builds. Builds and publication
+run only after an approved PR is merged into `main`; there is no manual build
+trigger.
