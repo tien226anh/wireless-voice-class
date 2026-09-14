@@ -1,0 +1,18 @@
+[package]
+name = "wireless-pa"
+version = "0.5.0"
+edition = "2024"
+description = "Cross-platform wireless microphone to speaker PA app"
+license = "MIT"
+
+[dependencies]
+cpal = "0.16"
+eframe = "0.32"
+crossbeam-queue = "0.3"
+decibri-aec = "0.2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

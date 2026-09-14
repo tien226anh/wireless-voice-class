@@ -1,0 +1,17 @@
+# Cargo build outputs (including cross-compilation targets)
+/target/
+
+# Keep Cargo.lock versioned for reproducible application builds.
+
+# Rustfmt backup files
+**/*.rs.bk
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
