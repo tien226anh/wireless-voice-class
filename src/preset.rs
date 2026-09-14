@@ -1,30 +1,38 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+use crate::i18n::Language;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PresetKind {
     SmallClassroom,
     LargeRoom,
+    #[default]
     BluetoothMic,
 }
 
 impl PresetKind {
-    pub const ALL: [Self; 3] = [
-        Self::SmallClassroom,
-        Self::LargeRoom,
-        Self::BluetoothMic,
-    ];
+    pub const ALL: [Self; 3] = [Self::BluetoothMic, Self::SmallClassroom, Self::LargeRoom];
 
-    pub const fn label(self) -> &'static str {
+    pub const fn label(self, language: Language) -> &'static str {
         match self {
-            Self::SmallClassroom => "Small classroom",
-            Self::LargeRoom => "Large room",
-            Self::BluetoothMic => "Bluetooth microphone",
+            Self::SmallClassroom => language.text("Small classroom", "Lớp học nhỏ"),
+            Self::LargeRoom => language.text("Large room", "Phòng lớn"),
+            Self::BluetoothMic => language.text("Bluetooth microphone", "Micrô Bluetooth"),
         }
     }
 
-    pub const fn description(self) -> &'static str {
+    pub const fn description(self, language: Language) -> &'static str {
         match self {
-            Self::SmallClassroom => "Low latency and natural speech for a nearby laptop/portable speaker.",
-            Self::LargeRoom => "More dynamics control, stronger feedback rejection, and a slightly deeper safety buffer.",
-            Self::BluetoothMic => "Extra buffering and AEC search range for wireless transport latency and clock drift.",
+            Self::SmallClassroom => language.text(
+                "Natural speech for a nearby laptop or portable speaker.",
+                "Giọng nói tự nhiên khi dùng loa máy tính hoặc loa di động ở gần.",
+            ),
+            Self::LargeRoom => language.text(
+                "More even volume and stronger feedback control for a larger space.",
+                "Âm lượng đều hơn và chống hú mạnh hơn cho không gian rộng.",
+            ),
+            Self::BluetoothMic => language.text(
+                "A steadier connection for Bluetooth headsets and wireless microphones.",
+                "Âm thanh ổn định hơn cho tai nghe Bluetooth và micrô không dây.",
+            ),
         }
     }
 
@@ -163,4 +171,31 @@ pub struct AdaptiveResamplingPreset {
     pub target_buffer_ms: f32,
     pub correction_strength: f32,
     pub max_correction: f32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bluetooth_is_the_default_with_its_wireless_buffer() {
+        let preset = PresetKind::default();
+        assert_eq!(preset, PresetKind::BluetoothMic);
+        assert_eq!(preset.config().adaptive.target_buffer_ms, 90.0);
+        assert_eq!(preset.config().gain, 1.55);
+    }
+
+    #[test]
+    fn every_profile_has_distinct_english_and_vietnamese_labels() {
+        for preset in PresetKind::ALL {
+            assert_ne!(
+                preset.label(Language::English),
+                preset.label(Language::Vietnamese)
+            );
+            assert_ne!(
+                preset.description(Language::English),
+                preset.description(Language::Vietnamese)
+            );
+        }
+    }
 }

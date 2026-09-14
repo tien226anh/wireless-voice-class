@@ -1,155 +1,123 @@
-# Wireless PA: configuration and usage guide
+# Wireless PA user guide
 
-Wireless PA sends a microphone connected to your computer to a speaker connected
-to that computer. It processes speech, reduces noise, and helps control echo and
-feedback. Pair Bluetooth devices or connect a wireless USB receiver in your
-operating system first; the app does not pair devices or stream audio over Wi-Fi.
+[Tiếng Việt](USER_GUIDE_VI.md)
 
-## 1. Download and open
+Wireless PA plays a microphone connected to your computer through a speaker.
+Pair your Bluetooth headset or connect a wireless USB receiver in your operating
+system first. The app uses devices already available to the computer.
 
-Get an archive from the [Releases page](https://github.com/tien226anh/wireless-voice-class/releases).
+## Open the app and choose a language
 
-| System | Archive | Open after extracting |
+Download a version from the [Releases page](https://github.com/tien226anh/wireless-voice-class/releases)
+and extract its archive.
+
+| System | Archive | Open |
 | --- | --- | --- |
 | Windows x64 | `wireless-pa-vX.Y.Z-windows-x64.zip` | Double-click `wireless-pa.exe`. |
-| Linux x64 | `wireless-pa-vX.Y.Z-linux-x64.tar.gz` | Run `./wireless-pa` in the extracted folder. |
+| Linux x64 | `wireless-pa-vX.Y.Z-linux-x64.tar.gz` | Run `./wireless-pa` in a graphical desktop with ALSA. |
 
-Linux needs a graphical desktop and the ALSA runtime. If no release has been
-published yet, follow the [source build instructions](../README.md#build).
+On first launch, choose **English** or **Tiếng Việt**. The app remembers your
+choice. You can change language at any time using the selector in the top bar,
+including while audio is running. Changing language does not reset sound controls.
 
-Connect your microphone and speaker, confirm they work in your system's sound
-settings, and allow microphone access when your operating system requests it.
-Start with a low speaker volume and place the speaker away from the microphone.
+![First-launch language choice](images/00-language.png)
 
-## 2. Choose your microphone, speaker, and preset
+If no release is available, use the [source build instructions](../README.md#build).
 
-![Stopped app with device selectors and voice controls](images/01-setup.png)
+## Start in three steps
 
-1. Choose a **Room / microphone preset** from the table below.
-2. Select the intended **Microphone** and **Speaker**.
-3. If you connected a device after opening the app, click **Refresh devices**.
-4. Keep **Acoustic echo cancellation (AEC)** and **Basic feedback suppression**
-   checked as a starting point.
-5. Click **Start microphone** and speak at your normal distance from the mic.
+![English setup screen](images/01-setup.png)
 
-On Linux, `default`, `pulse`, or `pipewire` can refer to system audio routing.
-If you use one of these entries, choose the actual headset and speaker in your
-system's sound settings. Stop the app before changing devices, refresh, and start
-again. The device selectors and refresh button are disabled during playback.
+1. **Connect your devices.** Choose the microphone you will speak into and the
+   speaker your audience should hear. Click **Refresh devices** after connecting
+   or pairing a device.
+2. **Choose a sound profile.** **Bluetooth microphone** is selected by default.
+   The presets set the technical controls for you.
+3. **Make yourself heard.** Keep speaker volume low, click **Start microphone** in
+   the bottom bar, and speak. Gradually adjust **Voice volume** if needed.
 
-These are unedited captures of the Linux app using isolated, silent virtual audio
-devices. Both selectors therefore show `default`; your device names will differ.
-They demonstrate the interface and stream lifecycle, not real-room sound quality.
+The bottom bar stays visible when you scroll or resize the window. Click
+**Stop microphone** before changing devices or unplugging a headset.
 
-![Available room and microphone presets](images/02-presets.png)
+**Quick help** shows or hides the three-step instructions. Hover over Start,
+device selectors, profiles, and sound controls for short explanations. These
+tooltips follow the selected language.
 
-| Preset | Intended use | Buffer target | Initial mic gain |
-| --- | --- | --- | --- |
-| Small classroom | Nearby laptop or portable speaker; the default starting point | 45 ms | 1.50 |
-| Large room | More compression and stronger feedback detection | 65 ms | 1.65 |
-| Bluetooth microphone | More buffering for wireless delay and differing device clocks | 90 ms | 1.55 |
+![Start button with a short setup reminder](images/09-start-help.png)
 
-Choose a preset **before** fine-tuning. Selecting a different preset replaces your
-manual settings. If audio is running, the app stops and restarts it automatically
-to apply that preset's echo-canceller configuration; expect a brief interruption.
-There is no Save button or persistent configuration: reopening the app restores
-the Small classroom defaults. Keep a note of any settings you want to reuse.
+If a selector shows **System default**, choose the actual device in your
+computer's sound settings. Device selectors are disabled while audio is running;
+stop playback to change them.
 
-## 3. Start, check the meters, and stop
+## Choose a profile
 
-![Running audio with disabled device selectors and the Stop button](images/03-running.png)
+![Sound profiles and the simpler voice controls](images/02-presets.png)
 
-The bottom status must say **Running**. It shows the preset plus input and output
-sample rates and channel counts. **Stop** ends microphone routing. Use Stop before
-unplugging a device or changing system audio routing.
+| Profile | Use it for | Initial audio reserve |
+| --- | --- | --- |
+| Bluetooth microphone — default | Bluetooth headsets and wireless microphone connections | 90 ms |
+| Small classroom | A nearby laptop or portable speaker | 45 ms |
+| Large room | More even speech volume and stronger feedback control in a larger space | 65 ms |
 
-| Indicator | Meaning and what to do |
+Choose a profile before adjusting sound controls. Switching profiles replaces
+manual sound adjustments and briefly restarts audio if it is running. Reopening
+the app restores the Bluetooth profile and sound defaults; **language is saved**.
+
+## Adjust your voice and check playback
+
+![Microphone running](images/03-running.png)
+
+| Control | What to do |
 | --- | --- |
-| Input level | The signal **after** echo cancellation and voice processing. Speak and check that it moves. A closed noise gate, zero gain, or silence can keep it at zero even when capture is working. |
-| Audio buffer | The fraction of the internal queue currently occupied. It is not a volume meter or the percentage of the target delay. It does not need to reach 100%. |
-| AEC algorithmic latency | Delay introduced by the echo canceller only. Device, wireless, and buffering delays add to the total you hear. |
-| Feedback notch: monitoring | Suppression is enabled and currently has no active notch. |
-| Feedback notch active | A narrow band of frequencies is being reduced; the displayed frequency is the detected tone. |
-| Underruns / Overruns | Internal queue counters. Watch whether they keep increasing while audio breaks up; they reset on Start. Zero does not prove a perfect wireless link. |
+| Voice volume | Raise gradually if speech is too quiet. 100% is unity gain after processing; 0% is silent. Bluetooth starts at 155%. |
+| Reduce echo | Leave enabled initially. It helps reduce the app's speaker sound when the microphone picks it up again. |
+| Reduce whistling | Leave enabled initially. It helps suppress persistent ringing tones. |
+| Voice level | Watch it move while speaking. It measures the signal after processing, not the raw microphone input. |
+| You're live | Confirms that the app opened its audio streams. It does not guarantee that the correct physical speaker is selected. |
 
-The screenshots use silence, so the input meter stays at 0% even while the stream
-is running. In normal use, increase speaker volume gradually after confirming
-that normal speech passes through clearly.
+The guide captures use a silent virtual microphone and speaker, so the level
+stays at zero. They demonstrate the real interface and stream lifecycle; they do
+not measure real-room audio quality. Your device names may differ.
 
-## 4. Tune voice processing
+## Advanced sound settings
 
-Change one control at a time while speaking. These sliders and the AEC/feedback
-checkboxes update during playback.
+Most users can leave this section closed. Open it only to solve a specific sound
+problem; every control also has a translated tooltip.
 
-| Control | How to use it |
+![Advanced feedback controls](images/04-feedback.png)
+
+| Section | Controls and purpose |
 | --- | --- |
-| High-pass (Hz) | Reduces low rumble. Raise it if handling noise or bass is excessive; lower it if the voice becomes thin. Presets start at 90–120 Hz. |
-| Noise gate | Mutes very quiet audio. Raise it slightly to reduce background noise; lower it if quiet words or word endings disappear. `0` disables the threshold. |
-| Compressor threshold (dB) | The level above which louder speech is reduced. A more negative value compresses more of the signal. |
-| Compressor ratio | Controls how strongly loud speech is reduced. `1` provides no compression; higher values even out loud and quiet phrases more strongly. |
-| Attack ms / Release ms | How quickly compression starts and relaxes. Begin with the preset values; increase release if the level audibly pumps. |
-| Mic gain | Output gain applied to processed speech. `1` is unity and `0` is silent. Raise gradually if speech is too quiet. |
-| Limiter | Caps the processed signal's peak amplitude. Keep the preset's 0.90–0.92 initially. Lowering it limits peaks; it cannot repair clipping that already happened in the microphone. |
+| Voice clarity | Remove low rumble filters bass/handling noise. Background noise threshold mutes quiet sounds; lower it if quiet words disappear. Compression evens out loud phrases. Peak volume limit caps peaks. |
+| Feedback fine-tuning | Choose the frequency range, detection threshold, number of confirmations, filter focus, and how long suppression remains. Lower detection thresholds react more readily but may affect wanted sounds. |
+| Wireless stability & delay | Increase Audio reserve if sound breaks up. Higher values add delay. Leave clock correction controls at their preset values initially. |
+| Technical details | Shows device rates, channel counts, echo-canceller latency, buffer occupancy, queue counters, and the original device error when startup fails. |
 
-If speech is distorted, reduce the microphone input level in the operating system
-first, then check app gain and speaker volume. If the output is quiet but the meter
-moves, check the selected output and system mixer before increasing gain further.
+![Wireless stability and delay controls](images/05-bluetooth-buffer.png)
 
-## 5. Echo and feedback
+The audio reserve is only part of total latency. Lowering it cannot remove delay
+already introduced by a Bluetooth device. A value such as 0.025 for maximum rate
+correction means 2.5%.
 
-**AEC** uses the app's speaker output as a reference to reduce that sound when it
-returns through the microphone. The preset controls its delay search and echo
-tail. The checkbox bypasses processing; the preset selector changes the topology.
-The app does not use unrelated music or other applications' audio as its reference.
+If ringing starts, stop playback or lower speaker volume, move the speaker away
+from the microphone, and resume at lower volume. Software suppression does not
+replace sensible speaker placement.
 
-![Feedback parameters expanded](images/04-feedback.png)
+## Troubleshooting
 
-Open **Feedback parameters** for these controls:
-
-| Control | Effect |
+| Problem | Try this |
 | --- | --- |
-| Hz min / Hz max | Limits the frequency range searched for ringing. Keep min below max. |
-| Detection tonal ratio | Lower values detect tones more readily, with more chance of affecting wanted audio. |
-| Persistent scans | Lower values react sooner; higher values require a tone to persist longer. |
-| Notch Q | Higher values make a narrower cut around the detected frequency. |
-| Release seconds | How long the suppression remains after detecting a tone. |
+| No microphone or speaker found | Check pairing/cables and OS sound settings, then Refresh devices. Start stays disabled until both device lists are available. |
+| Couldn't start audio | Check the selected devices and microphone permissions. Open Advanced sound settings → Technical details for the original error. |
+| Capture-rate error | Set the microphone to 44.1 or 48 kHz in system/device settings, then refresh and restart. The app validates an 8–48 kHz capture range even when Reduce echo is off. |
+| You're live, but no sound | Check the physical input/output, system mute/volume, nonzero Voice volume, and the background noise threshold. |
+| Quiet words are cut off | Lower Background noise threshold under Voice clarity. |
+| Sound crackles or pauses | Increase Audio reserve a little, check the wireless connection, and compare with a wired/USB device. |
+| Device disconnects | Stop, reconnect, Refresh devices, select again, and Start. Streams do not reconnect automatically. |
+| Controls do not fit on screen | Scroll the content area or collapse advanced sections. Start/Stop stays in the bottom bar. |
+| Want another language | Use English / Tiếng Việt in the top bar. The new choice is saved immediately. |
 
-If you hear a squeal, click **Stop** or lower speaker volume, then increase the
-distance between speaker and microphone. Resume at lower gain. These controls
-help suppress feedback; speaker placement and volume still matter.
+![Vietnamese interface](images/07-vietnamese.png)
 
-## 6. Bluetooth delay and audio dropouts
-
-![Bluetooth preset with feedback and adaptive resampling controls expanded](images/05-bluetooth-buffer.png)
-
-Start with **Bluetooth microphone**, then open **Adaptive resampling**:
-
-| Control | Effect |
-| --- | --- |
-| Target buffer (ms) | A higher target provides more audio in reserve but increases delay. Raise it in small steps if audio breaks up; lower it gradually if playback is stable and delay is too high. |
-| Clock correction strength | Controls how strongly the app responds to changes in queue fill. Keep the preset value initially. |
-| Max rate correction | Limits the resampling adjustment. `0.025` means 2.5%, not 0.025%. Keep the preset value unless you are investigating clock drift. |
-
-The target buffer is only part of total latency. A lower setting cannot remove
-delay already introduced by Bluetooth or the audio device. For persistent delay,
-compare with a wired or USB device and check the wireless connection separately.
-
-## 7. Troubleshooting
-
-| Symptom | Check |
-| --- | --- |
-| No microphone / No speaker | Confirm the device is connected and visible to the OS; Stop, Refresh devices, and select it again. |
-| `Failed: …` after Start | Read the complete status message. Check device availability, microphone permissions, and system audio settings. |
-| Capture-rate error | Choose a supported microphone rate in system/device settings, usually 44.1 or 48 kHz, then refresh and restart. The app validates an 8–48 kHz input range at startup even when AEC is unchecked. |
-| Running, but no audible voice | Confirm the correct input/output, system volume and mute states, nonzero Mic gain, and a Noise gate low enough to pass speech. |
-| Quiet speech cuts out | Lower Noise gate and check the OS microphone input level. |
-| Ringing or squealing | Stop, reduce speaker volume/gain, and move the speaker away from the microphone. |
-| Crackles or pauses | Watch the queue counters, try a larger Target buffer, check the wireless connection, and compare with another device. |
-| Device disconnected during playback | Stop, reconnect, Refresh devices, reselect, and Start. The app does not automatically reconnect streams. |
-| Start/Stop or the status is below the window | Enlarge the window or collapse Feedback parameters and Adaptive resampling. |
-| Custom values changed unexpectedly | A different preset resets its controls; reopening the app also restores defaults. |
-
-![Stopped app after the automated walkthrough](images/06-stopped.png)
-
-For maintainers, [capture instructions](CAPTURE.md) explain how to regenerate these
-screenshots by running the actual application.
+For maintainers, see [capture instructions](CAPTURE.md). Noto Sans is bundled for
+Vietnamese text; its [font license](FONT_LICENSE.txt) is included with releases.

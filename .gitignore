@@ -9,6 +9,9 @@
 # Rustfmt backup files
 **/*.rs.bk
 
+# Python screenshot helper cache
+__pycache__/
+
 # Editor temporary files
 *.swp
 *.swo

@@ -4,6 +4,7 @@
 import argparse
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +18,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, default=ROOT / "target/release/wireless-pa")
     parser.add_argument("--output", type=Path, default=ROOT / "docs/images")
+    parser.add_argument("--first-screen-only", action="store_true", help="Capture just the language chooser")
+    parser.add_argument("--setup-only", action="store_true", help="Capture onboarding and English setup")
     args = parser.parse_args()
     binary = args.binary.resolve()
     if not binary.is_file():
@@ -31,6 +34,8 @@ def main():
         env = dict(os.environ)
         env.update({
             "XDG_RUNTIME_DIR": temporary,
+            "XDG_DATA_HOME": str(temp / "data"),
+            "XDG_CONFIG_HOME": str(temp / "config"),
             "PULSE_STATE_PATH": str(temp / "pulse-state"),
             "PULSE_SERVER": f"unix:{temp}/pulse.sock",
             "ALSA_CONFIG_PATH": str(temp / "alsa.conf"),
@@ -92,9 +97,11 @@ def main():
             window = wait_for(
                 lambda: run("xdotool", "search", "--onlyvisible", "--pid", str(app.pid),
                             "--name", "^Wireless PA$").splitlines()[0], "app window")
-            run("xdotool", "windowsize", "--sync", window, "840", "700")
+            run("xdotool", "windowsize", "--sync", window, "960", "1000")
 
-            def capture(name):
+            def capture(name, hover=False):
+                if not hover:
+                    run("xdotool", "mousemove", "--window", window, "5", "5")
                 time.sleep(1)
                 run("ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "x11grab",
                     "-draw_mouse", "0", "-framerate", "1", "-window_id", window,
@@ -102,36 +109,106 @@ def main():
                     str(args.output / f"{name}.png"))
                 print(f"Captured {name}.png", flush=True)
 
-            capture("01-setup")
+            capture("00-language")
+            if args.first_screen_only:
+                return
 
             def click(x, y):
                 run("xdotool", "mousemove", "--window", window, str(x), str(y), "click", "1")
                 time.sleep(0.4)
 
-            click(70, 68)
-            capture("02-presets")
-            run("xdotool", "key", "--window", window, "Escape")
-            click(65, 597)
-            time.sleep(3)
-            if not run("pactl", "list", "short", "source-outputs"):
-                raise RuntimeError("Start did not create an audio capture stream")
-            if not run("pactl", "list", "short", "sink-inputs"):
-                raise RuntimeError("Start did not create an audio playback stream")
+            def streams():
+                return tuple(tuple(line.split()[0] for line in run("pactl", "list", "short", kind).splitlines())
+                             for kind in ("source-outputs", "sink-inputs"))
+
+            def assert_running():
+                state = streams()
+                if not all(state):
+                    raise RuntimeError("Expected both microphone capture and speaker playback")
+                return state
+
+            def saved_language(code):
+                preferences = temp / "data/wireless-pa/app.ron"
+                return preferences.is_file() and re.search(
+                    rf'"wireless-pa.language"\s*:\s*"{code}"', preferences.read_text())
+
+            click(350, 580)
+            wait_for(lambda: saved_language("en"), "English preference to save")
+            capture("01-setup")
+            if args.setup_only:
+                return
+
+            run("xdotool", "mousemove", "--window", window, "180", "556")
+            capture("02-presets", hover=True)
+            run("xdotool", "mousemove", "--window", window, "800", "955")
+            capture("09-start-help", hover=True)
+            click(800, 955)
+            wait_for(lambda: all(streams()), "audio capture and playback")
             capture("03-running")
-            run("xdotool", "windowsize", "--sync", window, "840", "900")
-            click(90, 434)
+
+            # A live language change must preserve the same capture/playback streams.
+            before_language = assert_running()
+            click(866, 44)
+            click(855, 115)
+            wait_for(lambda: saved_language("vi"), "Vietnamese preference to save")
+            if assert_running() != before_language:
+                raise RuntimeError("Changing language interrupted the audio streams")
+            capture("07-vietnamese")
+            click(866, 44)
+            click(855, 81)
+            wait_for(lambda: saved_language("en"), "English preference to save again")
+
+            # Changing a profile while running must reopen both streams.
+            before_profile = assert_running()
+            click(480, 579)
+            wait_for(lambda: all(streams()) and all(new != old for new, old in zip(streams(), before_profile)),
+                     "profile change to reopen audio")
+            click(180, 579)
+            assert_running()
+            click(745, 44)  # Hide quick help to make room for advanced controls.
+            click(140, 791)  # Advanced sound settings.
+            run("xdotool", "mousemove", "--window", window, "900", "800",
+                "click", "--repeat", "12", "--delay", "50", "5")
+            click(145, 743)  # Feedback fine-tuning.
+            run("xdotool", "mousemove", "--window", window, "900", "800",
+                "click", "--repeat", "24", "--delay", "30", "5")
             capture("04-feedback")
-            # Switching presets while running exercises the stream restart path.
-            click(70, 68)
-            click(85, 135)
-            click(90, 587)
+            click(180, 787)  # Wireless stability & delay stays near the bottom.
+            run("xdotool", "mousemove", "--window", window, "900", "800",
+                "click", "--repeat", "24", "--delay", "30", "5")
             capture("05-bluetooth-buffer")
-            if not run("pactl", "list", "short", "source-outputs"):
-                raise RuntimeError("Preset change did not restart audio capture")
-            click(30, 765)
-            wait_for(lambda: not run("pactl", "list", "short", "source-outputs"),
-                     "capture stream to stop")
+            click(800, 955)
+            wait_for(lambda: not any(streams()), "capture and playback to stop")
             capture("06-stopped")
+
+            click(866, 44)
+            click(855, 115)
+            wait_for(lambda: saved_language("vi"), "final Vietnamese preference")
+            run("xdotool", "windowsize", "--sync", window, "600", "620")
+            run("xdotool", "mousemove", "--window", window, "560", "300",
+                "click", "--repeat", "30", "--delay", "30", "4")
+            capture("08-small-window")
+            click(450, 575)
+            wait_for(lambda: all(streams()), "playback in the small window")
+            click(450, 575)
+            wait_for(lambda: not any(streams()), "small-window playback stop")
+
+            # Restart with the same isolated preferences. Audio should start directly
+            # from the main screen, proving the first-launch chooser was skipped.
+            app.terminate()
+            app.wait(timeout=5)
+            children.remove(app)
+            app = launch([str(binary)], "app-reopened")
+            window = wait_for(
+                lambda: run("xdotool", "search", "--onlyvisible", "--pid", str(app.pid),
+                            "--name", "^Wireless PA$").splitlines()[0], "reopened app window")
+            run("xdotool", "windowsize", "--sync", window, "960", "1000")
+            capture("10-language-restored")
+            click(800, 955)
+            wait_for(lambda: all(streams()), "playback after restoring language")
+            click(800, 955)
+            wait_for(lambda: not any(streams()), "final playback stop")
+            print("Verified language persistence, live language switching, profile restart, and Start/Stop.", flush=True)
         except Exception:
             for log in temp.glob("*.log"):
                 print(f"--- {log.name} ---\n{log.read_text()[-4000:]}")

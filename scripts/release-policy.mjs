@@ -79,6 +79,15 @@ export function approvedRevision(pr, reviews) {
     !decisions.some(r => r.state === 'CHANGES_REQUESTED');
 }
 
+// A personal repository's owner can explicitly authorize a release by merging
+// the PR. Use the recorded merger, never the actor rerunning the workflow.
+export function mergedByOwner(pr, repo) {
+  const owner = pr.base?.repo?.owner;
+  return owner?.type === 'User' && Number.isSafeInteger(owner.id) &&
+    owner.login?.toLowerCase() === repo.split('/')[0].toLowerCase() &&
+    pr.merged_by?.id === owner.id;
+}
+
 async function optional(api, path) {
   try {
     return await api('GET', path);
@@ -139,14 +148,18 @@ export async function prepareRelease({ api, repo, eventName, event, sha, ref, ac
   let prNumber = '';
   if (eventName === 'push') {
     const pulls = await list(api, `/repos/${repo}/commits/${sha}/pulls`);
-    const pr = pulls.find(p => p.merged_at && p.base.ref === 'main' &&
-      p.base.repo.full_name === repo && p.merge_commit_sha === sha);
-    if (!pr) return { run: false, reason: 'No merged PR for this commit; no build or release.' };
+    const matchesMerge = p => p.merged_at && p.base.ref === 'main' &&
+      p.base.repo.full_name === repo && p.merge_commit_sha === sha;
+    const match = pulls.find(matchesMerge);
+    if (!match) return { run: false, reason: 'No merged PR for this commit; no build or release.' };
+    // Commit association responses do not include merged_by. Fetch the full PR.
+    const pr = await api('GET', `/repos/${repo}/pulls/${match.number}`);
+    if (!matchesMerge(pr)) throw new Error('The PR no longer matches the release source commit.');
     tag = prVersion(pr.labels);
     if (!tag) return { run: false, reason: 'The merged PR has no release:vMAJOR.MINOR.PATCH label; no release.' };
     const reviews = await list(api, `/repos/${repo}/pulls/${pr.number}/reviews`);
-    if (!approvedRevision(pr, reviews)) {
-      return { run: false, reason: 'The final PR revision needs approval before merge, with no outstanding change requests.' };
+    if (!mergedByOwner(pr, repo) && !approvedRevision(pr, reviews)) {
+      throw new Error(`PR #${pr.number} requested ${tag}, but has neither an owner merge nor final-revision approval. Use the authorized manual release flow to recover.`);
     }
     prNumber = String(pr.number);
   } else if (eventName === 'workflow_dispatch') {

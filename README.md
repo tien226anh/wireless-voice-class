@@ -4,6 +4,12 @@ A small cross-platform PA application that routes a microphone to a selected spe
 
 Read the [configuration and usage guide](docs/USER_GUIDE.md) for setup instructions,
 screenshots, explanations of the controls, and troubleshooting.
+You can also read the [Vietnamese guide](docs/USER_GUIDE_VI.md).
+
+On first launch, choose English or Tiếng Việt. The app remembers that choice and
+lets you switch languages in the top bar. Bluetooth microphone is the default
+profile. The main screen has three setup steps, translated tooltips, and a Start/Stop
+bar that stays visible while advanced sound settings scroll separately.
 
 ## Stack
 

@@ -6,14 +6,15 @@ import { tmpdir } from 'node:os';
 import { join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { versionParts, suggestVersion, validateNewVersion, prVersion, approvedRevision,
-  prepareRelease, publishRelease, stampVersion, packageVersion, list } from './release-policy.mjs';
+  prepareRelease, publishRelease, stampVersion, packageVersion, list, mergedByOwner } from './release-policy.mjs';
 
 const sha = 'a'.repeat(40);
 const otherSha = 'b'.repeat(40);
 const repo = 'owner/wireless-pa';
 const pr = {
   number: 3, merged_at: '2026-09-14T10:00:00Z', merge_commit_sha: sha,
-  base: { ref: 'main', repo: { full_name: repo } }, head: { sha: otherSha },
+  base: { ref: 'main', repo: { full_name: repo, owner: { login: 'owner', id: 42, type: 'User' } } }, head: { sha: otherSha },
+  merged_by: { id: 99, login: 'maintainer' },
   labels: [{ name: 'release:v0.5.0' }],
 };
 const review = (state, extra = {}) => ({
@@ -33,6 +34,7 @@ function fixture(overrides = {}) {
       const page = Number(url.searchParams.get('page') || 1);
       const slice = items => items.slice((page - 1) * 100, page * 100);
       if (route === `/commits/${sha}/pulls`) return slice(state.pulls);
+      if (route === '/pulls/3') return state.details || state.pulls[0];
       if (route === '/pulls/3/reviews') return slice(state.reviews);
       if (route.endsWith('/permission')) return { permission: state.permission };
       if (route === '/tags') return slice(state.tags);
@@ -124,13 +126,50 @@ test('approved tagged merge plans the exact version and source commit without wr
 
 for (const [name, overrides] of [
   ['direct push', { pulls: [] }],
-  ['unapproved merge', { reviews: [] }],
   ['untagged merge', { pulls: [{ ...pr, labels: [] }] }],
   ['unmerged PR', { pulls: [{ ...pr, merged_at: null }] }],
   ['another merge commit', { pulls: [{ ...pr, merge_commit_sha: otherSha }] }],
 ]) {
   test(`does not build on ${name}`, async () => assert.equal((await plan(fixture(overrides).api)).run, false));
 }
+
+test('owner merge releases without a self-review using full PR details', async () => {
+  const summary = structuredClone(pr);
+  delete summary.merged_by;
+  const { api, state } = fixture({ pulls: [summary], reviews: [],
+    details: { ...pr, merged_by: { id: 42, login: 'owner' } } });
+  const result = await plan(api, { actor: 'someone-rerunning' });
+  assert.equal(result.run, true);
+  assert.equal(result.tag, 'v0.5.0');
+  assert.equal(result.sha, sha);
+  assert.deepEqual(state.writes, []);
+});
+
+test('an unapproved tagged merge fails visibly; rerunning as owner cannot authorize it', async () => {
+  await assert.rejects(plan(fixture({ reviews: [] }).api), /neither an owner merge nor final-revision approval/);
+});
+
+test('owner identity requires the actual personal-repository owner ID', () => {
+  assert.equal(mergedByOwner({ ...pr, merged_by: { id: 42 } }, repo), true);
+  assert.equal(mergedByOwner({ ...pr, merged_by: { id: 99, login: 'owner' } }, repo), false);
+  assert.equal(mergedByOwner({ ...pr, merged_by: null }, repo), false);
+  assert.equal(mergedByOwner({ ...pr, merged_by: { id: 42 } }, 'another/repo'), false);
+  const organization = structuredClone(pr);
+  organization.base.repo.owner.type = 'Organization';
+  organization.merged_by = { id: 42 };
+  assert.equal(mergedByOwner(organization, repo), false);
+});
+
+test('full PR details must still match the built merge commit', async () => {
+  await assert.rejects(plan(fixture({ details: { ...pr, merge_commit_sha: otherSha } }).api), /no longer matches/);
+});
+
+test('owner merge still requires a release label and a new version', async () => {
+  const ownerPr = { ...pr, merged_by: { id: 42, login: 'owner' } };
+  assert.equal((await plan(fixture({ pulls: [{ ...ownerPr, labels: [] }], reviews: [] }).api)).run, false);
+  await assert.rejects(plan(fixture({ pulls: [ownerPr], reviews: [],
+    tags: [{ name: 'v0.5.0', sha }] }).api), /already exists/);
+});
 
 test('manual suggestion is read-only and accounts for reserved draft versions', async () => {
   const { api, state } = fixture({ releases: [published(true)] });
